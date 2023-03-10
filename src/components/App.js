@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -10,82 +10,68 @@ import Button from './Button/Button';
 import ImageLoader from './Loader/Loader';
 import Modal from 'components/Modal/Modal';
 
-class App extends Component {
-  state = {
-    searchData: '',
-    page: 0,
-    images: [],
-    isLoading: false,
-    error: null,
-    showModal: false,
-    largeImage: '',
-  };
+const App = () => {
+  const [searchData, setSearchData] = useState('');
+  const [page, setPage] = useState(0);
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImage, setLargeImage] = useState('');
   
-  onSubmit = searchData => {
-
-    if (this.state.searchData === searchData.trim()) {
-      this.searchDataRepeat();
-      return;
+  const onSubmit = newData => {
+    if (searchData === newData.trim()) {
+      return searchDataRepeat();
     }
-
-    this.setState({
-      searchData,
-      page: 1,
-      images: [],
-    });
+    setSearchData(newData);
+    setPage(1);
+    setImages([]);
   };
   
-  searchDataRepeat = () => {
+  const searchDataRepeat = () => {
     return toast.info('You are already find this images!');
   };
 
-  componentDidUpdate(_, prevState) {
-    const prevPage = prevState.page;
-    const { searchData, page, images } = this.state;
-    
-    if (prevPage !== page) {
-      try {
-        this.setState({ isLoading: true });
-        const response = fetchImages(searchData, page);
-        response.then(foundData => {
-          foundData.data.hits.length === 0
-            ? toast.error(`${foundData.data.hits.length} images founded. 
-            Try to searsch another image!`)
-            : foundData.data.hits.forEach(
-                ({ id, webformatURL, largeImageURL }) => {
-                  !images.some(image => image.id === id) &&
-                    this.setState(({ images }) => ({
-                      images: [...images, { id, webformatURL, largeImageURL }],
-                    }));
-                }
-              );
-          this.setState({ isLoading: false });
-        });
-      } catch (error) {
-        this.setState({ error, isLoading: false });
-      } finally {
-      }
+  useEffect(() => {
+    if (!page) {
+      return;
     }
-  }
 
-  nextPage = () => {
-    this.setState(({ page }) => ({ page: page + 1 }));
+    try {
+      setIsLoading(true);
+      const response = fetchImages(searchData, page);
+      response.then(foundData => {
+        foundData.data.hits.length === 0
+          ? toast.error('Better luck next time!')
+          : foundData.data.hits.forEach(
+              ({ id, webformatURL, largeImageURL }) => {
+                !images.some(image => image.id === id) &&
+                  setImages(images => [
+                    ...images,
+                    { id, webformatURL, largeImageURL },
+                  ]);
+              }
+            );
+        setIsLoading(false);
+      });
+    } catch (error) {
+      setError(error);
+      setIsLoading(false);
+    }
+  }, [searchData, page, images]);
+
+  const nextPage = () => {
+    setPage(page => page + 1);
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
+  const toggleModal = () => {
+    setShowModal(!showModal);
   };
 
-  openModal = id => {
-    this.setState(({ images }) => ({
-      showModal: true,
-      largeImage: images[id].largeImageURL,
-    }));
+  const openModal = id => {
+    setShowModal(true);
+    setLargeImage(images[id].largeImageURL);
   };
-
-  render() {
-    const { images, isLoading, largeImage, showModal } = this.state;
-    const { nextPage, toggleModal, openModal, onSubmit } = this;
 
     return (
       <div className={s.main}>
@@ -102,6 +88,5 @@ class App extends Component {
       </div>
     );
   }
-}
 
 export default App;

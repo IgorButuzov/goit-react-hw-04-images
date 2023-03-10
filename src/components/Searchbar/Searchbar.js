@@ -1,36 +1,27 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import styles from 'components/Searchbar/Searchbar.module.css';
-import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-class Searchbar extends Component {
-  state = {
-    inputData: '',
-  };
+const Searchbar = ({onSubmit}) => {
+ 
+  const [inputData, setInputData] = useState('');
 
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired,
-  };
-
-  handleChange = e => {
+  const handleChange = e => {
     const { value } = e.currentTarget;
-    this.setState({ inputData: value.toLowerCase() });
+    setInputData(value.toLowerCase());
   };
 
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
 
-    if (this.state.inputData.trim() === '') {
+    if (inputData.trim() === '') {
       toast('Enter a request');
       return;
     }
-    this.props.onSubmit(this.state.inputData);
-    this.setState({ inputData: '' });
+    onSubmit(inputData);
+    setInputData('');
   };
-
-  render() {
-    const { handleChange, handleSubmit } = this;
 
     return (
       <header className={styles.searchbar}>
@@ -45,13 +36,12 @@ class Searchbar extends Component {
             autoComplete="off"
             autoFocus
             placeholder="Search images and photos"
-            value={this.state.inputData}
+            value={inputData}
             onChange={handleChange}
           />
         </form>
       </header>
     );
   }
-}
 
 export default Searchbar;
