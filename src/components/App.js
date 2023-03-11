@@ -42,24 +42,24 @@ const App = () => {
       setIsLoading(true);
       const response = fetchImages(searchData, page);
       response.then(foundData => {
-        foundData.data.hits.length === 0
-          ? toast.error('Better luck next time!')
-          : foundData.data.hits.forEach(
-              ({ id, webformatURL, largeImageURL }) => {
-                !images.some(image => image.id === id) &&
-                  setImages(images => [
-                    ...images,
-                    { id, webformatURL, largeImageURL },
-                  ]);
-              }
+        const foundedData = foundData.data.hits;
+        if (foundedData.length === 0){
+          toast.error('Better luck next time!');
+          setIsLoading(false);
+          return;
+        }
+          const newImages = foundedData.map(
+              ({ id, webformatURL, largeImageURL }) => 
+              ({ id, webformatURL, largeImageURL })
             );
+            setImages(images => [...images, ...newImages])
         setIsLoading(false);
       });
     } catch (error) {
       setError(error);
       setIsLoading(false);
     }
-  }, [searchData, page, images]);
+  }, [searchData, page]);
 
   const nextPage = () => {
     setPage(page => page + 1);
